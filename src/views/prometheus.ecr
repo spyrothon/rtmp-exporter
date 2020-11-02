@@ -1,0 +1,100 @@
+# HELP rtmp_node_uptime_seconds Current uptime of the node
+# TYPE rtmp_node_uptime_seconds gauge
+rtmp_node_uptime_seconds <%= metrics.node_uptime %>
+
+# HELP rtmp_node_bandwidth_in_bytes Current bandwidth into the node
+# TYPE rtmp_node_bandwidth_in_bytes gauge
+rtmp_node_bandwidth_in_bytes <%= metrics.node_bandwidth_in_bytes %>
+
+# HELP rtmp_node_bandwidth_out_bytes Current bandwidth out of the node
+# TYPE rtmp_node_bandwidth_out_bytes gauge
+rtmp_node_bandwidth_out_bytes <%= metrics.node_bandwidth_out_bytes %>
+
+# HELP rtmp_node_ingress_bytes Total bytes sent into the node
+# TYPE rtmp_node_ingress_bytes counter
+rtmp_node_ingress_bytes <%= metrics.node_bytes_in %>
+
+# HELP rtmp_node_egress_bytes Total bytes sent out of the node
+# TYPE rtmp_node_egress_bytes counter
+rtmp_node_egress_bytes <%= metrics.node_bytes_out %>
+
+# HELP rtmp_node_accepted_streams Total number of streams the node has accepted
+# TYPE rtmp_node_accepted_streams counter
+rtmp_node_accepted_streams <%= metrics.node_accepted_streams %>
+
+
+
+# HELP rtmp_clients Number of concurrent clients being served by an application
+# TYPE rtmp_clients gauge
+<% metrics.client_counts_by_application.each do |app, count| %>
+rtmp_clients{app="<%= app %>"} <%= count %>
+<% end %>
+
+
+# HELP rtmp_stream_bandwidth_in_bytes Current bandwidth into the stream from an application
+# TYPE rtmp_stream_bandwidth_in_bytes gauge
+<% metrics.bandwidth_in_by_app_stream.each do |(app, stream), bandwidth| %>
+rtmp_stream_bandwidth_in_bytes{app="<%= app %>",stream="<%= stream %>"} <%= bandwidth %>
+<% end %>
+
+
+# HELP rtmp_stream_bandwidth_out_bytes Current bandwidth out of the stream from an application
+# TYPE rtmp_stream_bandwidth_out_bytes gauge
+<% metrics.bandwidth_out_by_app_stream.each do |(app, stream), bandwidth| %>
+rtmp_stream_bandwidth_out_bytes{app="<%= app %>",stream="<%= stream %>"} <%= bandwidth %>
+<% end %>
+
+
+# HELP rtmp_stream_ingress_bytes Current bandwidth into the stream from an application
+# TYPE rtmp_stream_ingress_bytes counter
+<% metrics.each_app_stream do |app, stream| %>
+rtmp_stream_ingress_bytes{app="<%= app.name %>",stream="<%= stream.name %>"} <%= stream.bytes_in %>
+<% end %>
+
+
+# HELP rtmp_stream_egress_bytes Current bandwidth out of the stream from an application
+# TYPE rtmp_stream_egress_bytes counter
+<% metrics.each_app_stream do |app, stream| %>
+rtmp_stream_egress_bytes{app="<%= app.name %>",stream="<%= stream.name %>"} <%= stream.bytes_out %>
+<% end %>
+
+
+# HELP rtmp_stream_clients Number of concurrent clients for the stream
+# TYPE rtmp_stream_clients gauge
+<% metrics.each_app_stream do |app, stream| %>
+rtmp_stream_clients{app="<%= app.name %>",stream="<%= stream.name %>"} <%= stream.clients.reject(&.publishing?).size %>
+<% end %>
+
+
+# HELP rtmp_stream_dropped_frames Count of frames dropped so far in the stream
+# TYPE rtmp_stream_dropped_frames counter
+<% metrics.each_app_stream_client do |app, stream, client| %>
+rtmp_stream_dropped_frames{app="<%= app.name %>",stream="<%= stream.name %>",client="<%= client.address %>",publishing="<%= client.publishing? || false %>"} <%= client.dropped_frames %>
+<% end %>
+
+# HELP rtmp_stream_avsync_drift Current sync drift between audio and video on the stream
+# TYPE rtmp_stream_avsync_drift gauge
+<% metrics.each_app_stream_client do |app, stream, client| %>
+rtmp_stream_avsync_drift{app="<%= app.name %>",stream="<%= stream.name %>",client="<%= client.address %>",publishing="<%= client.publishing? || false %>"} <%= client.avsync %>
+<% end %>
+
+# HELP rtmp_stream_time_ms Amount of time the stream has been up
+# TYPE rtmp_stream_time_ms counter
+<% metrics.each_app_stream do |app, stream| %>
+rtmp_stream_time_ms{app="<%= app.name %>",stream="<%= stream.name %>"} <%= stream.time %>
+<% end %>
+
+# HELP rtmp_stream_client_time_ms Amount of time the client has been watching the stream
+# TYPE rtmp_stream_client_time_ms counter
+<% metrics.each_app_stream_client do |app, stream, client| %>
+rtmp_stream_client_time_ms{app="<%= app.name %>",stream="<%= stream.name %>",client="<%= client.address %>",publishing="<%= client.publishing? || false %>"} <%= client.time %>
+<% end %>
+
+
+
+
+
+# HELP rtmp_scrape_duration_seconds Duration of request for metrics
+# TYPE rtmp_scrape_duration_seconds gauge
+rtmp_scrape_duration_seconds{phase="request"} <%= (sample_request_end - sample_start).to_f %>
+rtmp_scrape_duration_seconds{phase="process"} <%= (sample_process_end - sample_request_end).to_f %>

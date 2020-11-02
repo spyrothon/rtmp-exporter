@@ -1,0 +1,16 @@
+name: rtmp-exporter
+version: 0.1.0
+crystal: 0.34.0
+license: MIT
+authors:
+  - Jon <jonegeland@gmail.com>
+
+targets:
+  rtmp-exporter:
+    main: src/rtmp-exporter.cr
+
+dependencies:
+  kemal:
+    github: kemalcr/kemal
+  auto_initialize:
+    github: kostya/auto_initialize
